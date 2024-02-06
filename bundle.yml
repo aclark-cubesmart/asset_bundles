@@ -1,0 +1,78 @@
+# This is a Databricks asset bundle definition for eda_mdm.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: cubesmart_cicd
+
+include:
+  - resources/*/*.yml
+
+# These are for any custom variables for use throughout the bundle.
+variables:
+  autoloader_cluster_id:
+    description: autoloader bronze workloads
+    default: string
+  bulk_load_cluster_id:
+    description: bulk historical load workloads
+    default: string
+  misc_import_cluster_id:
+    description: misc workloads
+    default: string
+  silver_load_cluster_id:
+    description: silver workloads
+    default: string
+  notification_email:
+    description: email for notifications about ingestion job failures
+    default: string
+  storage_account:
+    description: storage account for loading bronze qlik replicate data
+    default: string
+  table_owner:
+    description: service principal that owns the tables
+    default: string
+  catalog_name:
+    description: catalog name where tables will reside
+    default: string
+  job_pause_by_env:
+    description: catalog name where tables will reside
+    default: string
+
+targets:
+  # The 'dev' target, used for development purposes.
+  # Whenever a developer deploys using 'dev', they get their own copy.
+  dev:
+    # We use 'mode: development' to make sure everything deployed to this target gets a prefix
+    # like '[dev my_user_name]'. Setting this mode also disables any schedules and
+    # automatic triggers for jobs and enables the 'development' mode for Delta Live Tables pipelines.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-4660039655992445.5.azuredatabricks.net/
+    variables:
+      table_owner: ${workspace.current_user.userName}
+      job_pause_by_env: UNPAUSED
+
+  # Optionally, there could be a 'test' target here.
+  # (See Databricks docs on CI/CD at https://docs.databricks.com/dev-tools/bundles/index.html.)
+  #
+  test:
+    workspace:
+      host: https://adb-1111111111111111.1.azuredatabricks.net
+    variables:
+      table_owner: ${workspace.current_user.userName}
+      job_pause_by_env: PAUSED
+
+  # The 'prod' target, used for production deployment.
+  # prod:
+    # For production deployments, we only have a single copy, so we override the
+    # workspace.root_path default of
+    # /Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
+    # to a path that is not specific to the current user.
+    # mode: production
+    # workspace:
+    #  host:  https://adb-1111111111111111.1.azuredatabricks.net
+    #   root_path: /Shared/.bundle/prod/${bundle.name}
+    # run_as:
+      # This runs as meg.fager@ferguson.com in production. Alternatively,
+      # a service principal could be used here using service_principal_name
+      # (see Databricks documentation).
+    #  user_name: meg.fager@ferguson.com
